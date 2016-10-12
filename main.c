@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "structs.h"
+#include "functions.h"
 #include <math.h>
 
 int line = 1;
@@ -16,6 +17,7 @@ scene_object *obj_list;
 scene_light *light_list;
 pixels *pixel_buffer;
 
+/*
 static inline double square(double v){
 	return v*v;
 }
@@ -47,6 +49,26 @@ static inline double* sub_vector(double* a, double* b, double* answer){
     answer[2] = a[2] - b[2];
     return answer;
 }
+static inline int compare_objects(scene_object listo, scene_object pointero){
+    //printf("Hello\n");
+    if(listo.type != pointero.type) return -1;
+    if(listo.diffuse_color != pointero.diffuse_color) return -1;
+    if(listo.specular_color != pointero.specular_color) return -1;
+    if(listo.position != pointero.position) return -1;
+    if(listo.normal != pointero.normal) return -1;
+    if(listo.radius != pointero.radius) return -1;
+    return 0;
+}
+static inline void copy_object(scene_object copy, scene_object original){
+    copy.type = original.type;
+    copy.diffuse_color = original.diffuse_color;
+    copy.specular_color = original.specular_color;
+    copy.position = original.position;
+    copy.normal = original.normal;
+    copy.radius = original.radius;
+}
+
+*/
 
 
 // next_c() wraps the getc() function and provides error checking and line
@@ -489,7 +511,7 @@ void raycast(double num_width, double num_height){
 
             //HELP GET
 
-            scene_object* closest_object = NULL;
+            scene_object closest_object;
             //scene_object *closest_object = malloc(sizeof(scene_object));
             for(i=0; i<=list_i; i+=sizeof(scene_object)){
                 double t = 0;
@@ -504,13 +526,17 @@ void raycast(double num_width, double num_height){
                     best_c = obj_list[i].color;
                     if(obj_list[i].type != 'c'){
                         //closest_object = obj_list[i];
+                        copy_object(closest_object, obj_list[i]);
                     }
 
                 }
                 double* color = malloc(sizeof(double)*3);
                 //color[0] = ambient_color[0];
                 //color[1] = ambient_color[1];
-                //color[1] = ambient_color[2];
+                //color[2] = ambient_color[2];
+                color[0] = 0;
+                color[1] = 0;
+                color[2] = 0;
 
 
 
@@ -519,25 +545,35 @@ void raycast(double num_width, double num_height){
                     for(j=0; j<list_l; j+=sizeof(scene_light)){ //Do Summation of Ambient + Diffuse + Emission Light
                             double* Ro_new = add_vector(mult_num_vector(best_t, Rd, Ro_new), Ro, Ro_new);
                             double* Rd_new = sub_vector(light_list[j].position, Ro_new, Rd_new);
-                            scene_object *closest_shadow_object = NULL;
+                            scene_object closest_shadow_object;
+                            closest_shadow_object.type == 'z';
+                            //'z' Means it is a null object
+                            //double* best_t_shadow = INFINITY;
 
 
                         for(k=0; k<list_i; k+=sizeof(scene_object)){  //Iterate through objects to see what casts a shadow on pixel
                             double t_shadow = 0;
+                            if(compare_objects(obj_list[i], closest_object) == 0) continue;
 
-                            if(obj_list[k].type == 's' && obj_list[k] != closest_object){
+                            if(obj_list[k].type == 's'){
                                     t_shadow = sphere_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].radius);
                             }
-                            if(obj_list[k].type == 'p' && obj_list[k] != closest_object){
+                            if(obj_list[k].type == 'p'){
                                     t_shadow = plane_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].normal);
                             }
-                            if(t_shadow > 0 && t_shadow < best_t){
-                                closest_shadow_object = obj_list[k];
+                            if(best_t > distance_to_light){
+                                continue;
+                            }
+                            if(t_shadow > 0 /*&& t_shadow < best_t_shadow*/){
+                                //closest_shadow_object = obj_list[k];
+                                copy_object(closest_shadow_object, obj_list[k]);
                             }
                         }
-                        if(closest_shadow_obect == NULL){ //Color in the lighting for that pixel
+
+                        if(closest_shadow_object.type == 'z'){ //Color in the lighting for that pixel
 
                         }//Not darkening shadows, just lighting up where there are no shadows
+
                     }
 
                     //Make a paint function that takes into account the lights in the scene
@@ -547,8 +583,8 @@ void raycast(double num_width, double num_height){
                     int int_r = (int)r;
                     int int_g = (int)g;
                     int int_b = (int)b;
-                    int pos = (int)((M - y -1)*N +x);
 
+                    int pos = (int)((M - y -1)*N +x);
                     pixel_buffer[pos].r = int_r;
                     pixel_buffer[pos].g = int_g;
                     pixel_buffer[pos].b = int_b;
@@ -590,6 +626,15 @@ int write(int w, int h, char *output_image){
 }
 
 int main(int argc, char** argv) {
+    /*
+    scene_object j;
+    scene_object k;
+    j.type = 'j';
+    k.type= 'k';
+    j.radius = 2;
+    k.radius = 6;
+    compare_objects(j,k);*/
+
     if(argc != 5){
         fprintf(stderr, "Error: Not all arguments were provided or too many were given.\n");
         exit(1);

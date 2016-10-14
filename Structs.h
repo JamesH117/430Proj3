@@ -3,7 +3,7 @@ typedef struct obj_camera{
 } obj_camera;
 
 typedef struct scene_object{
-        char type;
+        unsigned char type;
         double *color;
         double *diffuse_color;
         double *specular_color;
@@ -18,7 +18,7 @@ typedef struct scene_object{
 
 //Maybe put lights as scene objects as well?
 typedef struct scene_light{
-        char type;
+        unsigned char type;
         double *color;
         double *position;
         double *direction;

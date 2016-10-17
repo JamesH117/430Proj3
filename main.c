@@ -118,6 +118,7 @@ void read_scene(char* filename) {
     //Doesnt run with 4 lights without this print line....
     //HELP
     //printf("Not it is fixed, WHY.\n");
+    printf("Starting Read Scene Function.\n");
     int c;
     char current_object;
 
@@ -221,6 +222,7 @@ void read_scene(char* filename) {
                 || (strcmp(key, "radial-a2") == 0) || (strcmp(key, "radial-a1") == 0) || (strcmp(key, "radial-a0") == 0) || (strcmp(key, "angular-a0") == 0)) {
                 //Depending on which is key, put value into that object value
                 double value = next_number(json);
+                //printf("Single Value is: %lf.\n", value);
 
                 if((strcmp(key, "width") == 0)){
                     main_camera.width = value;
@@ -254,57 +256,70 @@ void read_scene(char* filename) {
                 }
 
             }
+
             else if ((strcmp(key, "color") == 0) || (strcmp(key, "position") == 0) || (strcmp(key, "normal") == 0) || (strcmp(key, "direction") == 0) ||
                      (strcmp(key, "diffuse_color") == 0) || (strcmp(key, "specular_color") == 0)) {
                 //Depending on which is key, put value into that object *value
                 double* value = next_vector(json);
+                //printf("Value is: %lf, %lf, %lf.\n", value[0], value[1], value[2]);
 
                 if((strcmp(key, "color") == 0)){
                         //Add saving functionality for Diffuse and Specular Color
                         if(current_object != 'l'){
-                            obj_list[list_i].color = malloc(3*sizeof(double));
-                            obj_list[list_i].color = value;
-                            /*if(obj_list[list_i].color[0] > 1 || obj_list[list_i].color[3] > 1 || obj_list[list_i].color[2] > 1){
-                                fprintf(stderr, "ERROR: Some color value is greater than 1.\n");
-                                exit(1);
-                            }*/
-                            //obj_vars +=1;
+                            obj_list[list_i].color[0] = value[0];
+                            obj_list[list_i].color[1] = value[1];
+                            obj_list[list_i].color[2] = value[2];
+                            obj_list[list_i].color[3] = '\0';
                         }
                         if(current_object == 'l'){
-                            light_list[list_l].color = malloc(3*sizeof(double));
-                            light_list[list_l].color = value;
+                            light_list[list_l].color[0] = value[0];
+                            light_list[list_l].color[1] = value[1];
+                            light_list[list_l].color[2] = value[2];
+                            light_list[list_l].color[3] = '\0';
                         }
 
                 }
                 if((strcmp(key, "diffuse_color") == 0)){
-                    obj_list[list_i].diffuse_color = malloc(3*sizeof(double));
-                    obj_list[list_i].diffuse_color = value;
+                    obj_list[list_i].diffuse_color[0] = value[0];
+                    obj_list[list_i].diffuse_color[1] = value[1];
+                    obj_list[list_i].diffuse_color[2] = value[2];
+                    obj_list[list_i].diffuse_color[3] = '\0';
                 }
                 if((strcmp(key, "specular_color") == 0)){
-                    obj_list[list_i].specular_color = malloc(3*sizeof(double));
-                    obj_list[list_i].specular_color = value;
+                    obj_list[list_i].specular_color[0] = value[0];
+                    obj_list[list_i].specular_color[1] = value[1];
+                    obj_list[list_i].specular_color[2] = value[2];
+                    obj_list[list_i].specular_color[3] = '\0';
                 }
-
                 if((strcmp(key, "position") == 0)){
                         if(current_object != 'l'){
-                            obj_list[list_i].position = malloc(3*sizeof(double));
-                            obj_list[list_i].position = value;
+                            obj_list[list_i].position[0] = value[0];
+                            obj_list[list_i].position[1] = value[1];
+                            obj_list[list_i].position[2] = value[2];
+                            obj_list[list_i].position[3] = '\0';
                             //obj_vars +=1;
                         }
                         if(current_object == 'l'){
-                            light_list[list_l].position = malloc(3*sizeof(double));
-                            light_list[list_l].position = value;
+                            light_list[list_l].position[0] = value[0];
+                            light_list[list_l].position[1] = value[1];
+                            light_list[list_l].position[2] = value[2];
+                            light_list[list_l].position[3] = '\0';
                         }
                 }
 
                 if((strcmp(key, "normal") == 0)){
-                    obj_list[list_i].normal = malloc(3*sizeof(double));
-                    obj_list[list_i].normal = value;
+                    obj_list[list_i].normal[0] = value[0];
+                    obj_list[list_i].normal[1] = value[1];
+                    obj_list[list_i].normal[2] = value[2];
+                    obj_list[list_i].normal[3] = '\0';
                     //obj_vars +=1;
                 }
+
                 if((strcmp(key, "direction") == 0)){
-                    light_list[list_l].direction = malloc(3*sizeof(double));
-                    light_list[list_l].direction = value;
+                    light_list[list_l].direction[0] = value[0];
+                    light_list[list_l].direction[1] = value[1];
+                    light_list[list_l].direction[2] = value[2];
+                    light_list[list_l].direction[3] = '\0';
                     light_list[list_l].type = 's';
                 }
 
@@ -330,15 +345,13 @@ void read_scene(char* filename) {
         //printf("Before increment, list_i is: %d\n", list_i);
         if(current_object != 'c'){
             if(current_object != 'l'){
-                list_i += sizeof(scene_object);
-                /*if(obj_vars != 3){
-                    fprintf(stderr, "Error: One of your objects does not have the correct amount of parameters to render, each object needs only 3!\n");
-                    exit(1);
-                }*/
+                //list_i += sizeof(scene_object);
+                list_i++;
                 //obj_vars = 0;
             }
             if(current_object == 'l'){
-                list_l += sizeof(scene_light);
+                //list_l += sizeof(scene_light);
+                list_l++;
             }
 
             //printf("Incremented by %d\n", sizeof(scene_object));
@@ -402,7 +415,7 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
     double desc = (square(b) - 4*a*c);
 
     //If descriminate is negative, no intersection
-    if(desc < 0.0) return -1;
+    if(desc < 0.0) return INFINITY;
 
     double t0 = ((-b - sqrt(square(b) - 4.0*c*a))/(2.0*a));
     double t1 = ((-b + sqrt(square(b) - 4.0*c*a))/(2.0*a));
@@ -412,7 +425,7 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
     //Return t0 first
     //Return t1 next
     if(t0 > 0.0)return t0;
-    if(t1> 0.0) return t1;
+    if(t1 > 0.0) return t1;
 
 
     return -1;
@@ -421,6 +434,7 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
 }
 
 void raycast(double num_width, double num_height){
+    printf("Starting Raycast function.\n");
 
     int x = 0;
     int y = 0;
@@ -455,19 +469,15 @@ void raycast(double num_width, double num_height){
             double Rd[3] = {p_x, p_y, p_z};
             //printf("Rd is: %lf %lf %lf\n", Rd[0], Rd[1], Rd[2]);
             normalize(Rd);
-            //printf("Normalized Rd is: %lf %lf %lf\n", Rd[0], Rd[1], Rd[2]);
-            //printf("Length of Normalized Rd is: %lf\n", vector_length(Rd));
-            double best_t = INFINITY;
-            double *best_c;
 
-            //HELP GET
+            double best_t = INFINITY;
+            double best_c[3] = {0,0,0};
+
 
             scene_object closest_object;
-            //scene_object *closest_object = malloc(sizeof(scene_object));
-            for(i=0; i<=list_i; i+=sizeof(scene_object)){
-                //printf("list_i is: %d\n", list_i);
-                //printf("\n\n");
-                //printf("i is: %d\n", i);
+            closest_object.type = NULL;
+            for(i=0; i<=list_i; i++){
+                //printf("i is: %d", i);
                 double t = 0;
                 if(obj_list[i].type == 's'){
                         t = sphere_intersection(Ro, Rd, obj_list[i].position, obj_list[i].radius);
@@ -479,23 +489,19 @@ void raycast(double num_width, double num_height){
                 //printf("Before copy the obj_list[j].type is: %c\n", obj_list[i].type);
                 if(t > 0 && t < best_t){
                     best_t = t;
-                    //printf("best_t is: %lf\n", best_t);
+
                     //best_c = obj_list[i].color;
-                    best_c = obj_list[i].diffuse_color;
-                    if(obj_list[i].type != 'c'){
-                        //closest_object = obj_list[i];
-                        //printf("Hello\n");
-                        //printf("Object is of type: %c\n", obj_list[i]);
-                        //HELP This is always a Sphere with lighting portion, and Plane without
+                    best_c[0] = obj_list[i].diffuse_color[0];
+                    best_c[1] = obj_list[i].diffuse_color[1];
+                    best_c[2] = obj_list[i].diffuse_color[2];
 
-                        closest_object = copy_object(closest_object, obj_list[i]);
+                    closest_object = copy_object(closest_object, obj_list[i]);
 
-                        //printf("Closest_object.type: %c\n", closest_object.type);
-                    }
+                    //printf("Closest_object.type: %c\n", closest_object.type);
                 }
             }
 //After you loop through all the objects, I should have the closest object to pixel I am looking at
-            double* color = malloc(sizeof(double)*3);
+            double color[3] = {0,0,0};
             //color[0] = ambient_color[0];
             //color[1] = ambient_color[1];
             //color[2] = ambient_color[2];
@@ -512,9 +518,8 @@ void raycast(double num_width, double num_height){
             //If best_t is greater than 0 and not INFINITY, intersection is in view of camera
             if(best_t > 0 && best_t != INFINITY){
 /*To Get Rid of Shadow Part*/
-                for(j=0; j<list_l; j+=sizeof(scene_light)){ //Do Summation of Ambient + Diffuse + Emission Light
-
-                    double* Ro_new = malloc(sizeof(double)*3);
+                for(j=0; j<=list_l; j++){ //Do Summation of Ambient + Diffuse + Emission Light
+                    double Ro_new[3] = {0,0,0};
                     scale_vector(best_t, Rd, Ro_new);
                     //printf("Ro is: %lf, %lf, %lf\n", Ro[0], Ro[1], Ro[2]);
                     add_vector(Ro_new, Ro, Ro_new); //Point of object intersection we are looking at
@@ -522,130 +527,110 @@ void raycast(double num_width, double num_height){
                     //HELP Ro_new and Rd_new are probably wrong
 
                     //printf("Ro_new[0] is: %lf\n", Ro_new[0]);
-                    double* Rd_new = malloc(sizeof(double)*3);
+                    double Rd_new[3] = {0,0,0};
                     sub_vector(light_list[j].position, Ro_new, Rd_new);//Ray direction from object intersection to Light position
 
-                    //HELP on Rd_new
+                    double length_to_light[3] = {0,0,0};
+                    length_to_light[0] = Rd_new[0];
+                    length_to_light[1] = Rd_new[1];
+                    length_to_light[2] = Rd_new[2];
+
+                    normalize(Rd_new);
 
                     scene_object closest_shadow_object;
                     closest_shadow_object.type = NULL;
-                    //printf("Closest_shadow_object.type: %c\n", closest_shadow_object.type);
-                    //double* best_t_shadow = INFINITY;
 
-                    //normalize(Ro_new);
-                    //printf("Before Normalization %lf, %lf, %lf\n", Rd_new[0], Rd_new[1], Rd_new[2]);
-                    normalize(Rd_new);
-                    //printf("After Normalization %lf, %lf, %lf\n", Rd_new[0], Rd_new[1], Rd_new[2]);
-                    double t_shadow = 0;
+
                     double best_t_shadow = INFINITY;
-                    for(k=0; k<=list_i; k+=sizeof(scene_object)){  //Iterate through objects to see what casts a shadow on pixel
+                    for(k=0; k<=list_i; k++){  //Iterate through objects to see what casts a shadow on pixel
+                        double t_shadow = 0;
                         //if(compare_objects(obj_list[i], closest_object) == 0) continue;
                         if(k == i) continue;
-                        //HELP
-                        //Am I giving the correct parameters to found t_shadow intersection?
+
                         if(obj_list[k].type == 's'){
-                                //printf("sphere ");
                                 t_shadow = sphere_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].radius);
                         }
                         if(obj_list[k].type == 'p'){
-                                //printf("plane ");
                                 t_shadow = plane_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].normal);
                         }
-                        //HELP figure this out
-                        if(best_t > vector_length(Rd_new)){
-                        //        printf("Bigger\n");
+                        if(best_t > vector_length(length_to_light)){
                             continue;
                         }
                         if(t_shadow > 0.0 && t_shadow < best_t_shadow){
                             best_t_shadow = t_shadow;
                             //printf("best_t_shadow: %lf\n", best_t_shadow);
+                            closest_shadow_object = copy_object(closest_shadow_object, obj_list[k]);
+                            //printf("Closest_shadow_object.type: %c\n", closest_shadow_object.type);
                         }
 
                         if(best_t_shadow > 0 && best_t_shadow != INFINITY){
                             //printf("Copying Shadow Object\n");
                             //closest_shadow_object = obj_list[k];
                             //best_t_shadow = t_shadow;
-                            closest_shadow_object = copy_object(closest_shadow_object, obj_list[k]);
+                            //closest_shadow_object = copy_object(closest_shadow_object, obj_list[k]);
                             //printf("Closest_shadow_object.type: %c\n", closest_shadow_object.type);
                             //printf("New best_t_shadow\n");
                         }
-                        else{
-                            //printf("None\n");
-                        }//No Intersection
+                        else{}//No Intersection
                     }
                     if(closest_shadow_object.type == NULL){ //Color in the lighting for that pixel because there is no object casting a shadow on the closest object.
-                        double *closest_normal = malloc(sizeof(double)*3);
+                    //if(best_t_shadow == INFINITY){
+                        double closest_normal[3] = {0,0,0};
                         if(closest_object.type == 's') sub_vector(Ro_new, closest_object.position, closest_normal);
-                        if(closest_object.type == 'p') closest_normal = closest_object.normal;
+                        if(closest_object.type == 'p'){
+                            closest_normal[0] = closest_object.normal[0];
+                            closest_normal[1] = closest_object.normal[1];
+                            closest_normal[2] = closest_object.normal[2];
+                        }
 
                         normalize(closest_normal); //Always want normals to be unit vectors?
 
-                        //HELP is Vector_to_light actually the distance from intersection point to light?
                         double *vector_direction_to_light = Rd_new;  //vector from object intersection to Light position
-                        double *reflection_of_light_vector = malloc(sizeof(double)*3);
-
-                       // printf("Closest normal: %lf, %lf, %lf\n", closest_normal[0],closest_normal[1],closest_normal[2]);
-                        //printf("Its length is: %lf\n", vector_length(closest_normal));
+                        double reflection_of_light_vector[3] = {0,0,0};
 
                         //vector is pointing from intersection point towards light, do I need to make it negative first and then dot product?
                         vector_reflect(closest_normal, vector_direction_to_light, reflection_of_light_vector);
 
-                        //Wview_vector is the vector the camera sees an object at
-                        double *view_vector = Rd;
+                        //view_vector is the vector direction the camera sees an object at
+                        double view_vector[3] = {0,0,0};
+                        view_vector[0] = Rd[0];
+                        view_vector[1] = Rd[1];
+                        view_vector[2] = Rd[2];
+
+
                         normalize(view_vector);
                         double* current_diffuse = closest_object.diffuse_color;
                         double* current_specular = closest_object.specular_color;
                         double ns = 1; //property of diffuseness of object, will eventually be a property of objects
 
-                        //double qw = current_diffuse[0]*light_list[j].color[0]*(dot_product(closest_normal, vector_to_light)) + current_specular[0]*light_list[j].color[0]*power(dot_product(Ro_new, reflection_of_light_vector),ns);
-                        //printf("color is: %lf, %lf, %lf\n", color[0], color[1], color[2]);
 
-                        //HELP  Broken part is the coloring, probably becaue of Ro_new and Rd_new
-
-                        //printf("%lf\n", f_rad(light_list[j], Ro_new) * f_ang(light_list[j]) * (current_diffuse[0] + current_specular[0]));
-
-                        color[0] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j]) * (diffuse_contribution(0,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
+                        color[0] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new) * (diffuse_contribution(0,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
                                                                                            specular_contribution(0,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns));
-                        color[1] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j]) * (diffuse_contribution(1,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
+                        color[1] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new) * (diffuse_contribution(1,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
                                                                                            specular_contribution(1,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns));
-                        color[2] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j]) * (diffuse_contribution(2,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
+                        color[2] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new) * (diffuse_contribution(2,current_diffuse,light_list[j],closest_normal,vector_direction_to_light) +
                                                                                            specular_contribution(2,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns));
 
-                        free(closest_normal);
-                        free(reflection_of_light_vector);
                     }//Not darkening shadows, just lighting up where there are no shadows
-                    free(Ro_new);
-                    free(Rd_new);
                 }
 //To Get rid of Shadow Parts*/
                 //Make a paint function that takes into account the lights in the scene
-/*
-                double r = best_c[0]*255;
-                double g = best_c[1]*255;
-                double b = best_c[2]*255;
-                int int_r = (int)r;
-                int int_g = (int)g;
-                int int_b = (int)b;
-*/
+
                 int pos = (int)((M - y -1)*N +x);
-/*
-                pixel_buffer[pos].r = (unsigned char)clamp(color[0])*255;
-                pixel_buffer[pos].g = (unsigned char)clamp(color[1])*255;
-                pixel_buffer[pos].b = (unsigned char)clamp(color[2])*255;
-*/
-/*
-                pixel_buffer[pos].r = int_r;
-                pixel_buffer[pos].g = int_g;
-                pixel_buffer[pos].b = int_b;
-*/
+
                 pixel_buffer[pos].r = (unsigned char)(clamp(color[0])*255);
                 pixel_buffer[pos].g = (unsigned char)(clamp(color[1])*255);
                 pixel_buffer[pos].b = (unsigned char)(clamp(color[2])*255);
             }
-            else{}//Pixel will be black, because of memset
+            else{
+                int pos = (int)((M - y -1)*N +x);
+                pixel_buffer[pos].r = (unsigned char)clamp(color[0])*255;
+                pixel_buffer[pos].g = (unsigned char)clamp(color[1])*255;
+                pixel_buffer[pos].b = (unsigned char)clamp(color[2])*255;
             }
         }
     }
+}
 
 
 int write(int w, int h, char *output_image){
@@ -667,14 +652,10 @@ int write(int w, int h, char *output_image){
 
     fprintf(fp,"\n");
             for (j=0; j<width*height; j++){
-                    /*if(j%70 == 0 && j != 0){
-                        fwrite("\n", 1, 1, fp);
-                    }*/
                     fwrite(&pixel_buffer[j].r,1,1, fp);
                     fwrite(&pixel_buffer[j].g,1,1, fp);
                     fwrite(&pixel_buffer[j].b,1,1, fp);
             }
-
     return 0;
 }
 
@@ -685,18 +666,18 @@ int main(int argc, char** argv) {
     }
     obj_list = malloc(sizeof(scene_object)*128);
     light_list = malloc(sizeof(scene_light)*128);
+    //scene_object obj_list[128];
+    //scene_light light_list[128];
     double N = (double)atoi(argv[1]);
     double M = (double)atoi(argv[2]);
     pixel_buffer = (pixels*)malloc(sizeof(pixels)*N*M);
-    memset(pixel_buffer, 0, 3*N*M);
+    //memset(pixel_buffer, 255, 3*N*M);
 
     read_scene(argv[3]);
     raycast(N, M);
     write(N, M, argv[4]);
 
     //Free Memory I Allocate
-    free_obj_list(obj_list,list_i,sizeof(scene_object));
-    free_light_list(light_list,list_l,sizeof(scene_light));
     free(obj_list);
     free(light_list);
     free(pixel_buffer);

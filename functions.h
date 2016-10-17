@@ -52,11 +52,24 @@ static inline scene_object copy_object(scene_object coppy, scene_object original
     //printf("orig type: %c\n", original.type);
     coppy.type = original.type;
     //printf("coppy type: %c\n", coppy.type);
-    coppy.diffuse_color = original.diffuse_color;
-    coppy.specular_color = original.specular_color;
-    coppy.position = original.position;
-    coppy.normal = original.normal;
-    coppy.radius = original.radius;
+    coppy.diffuse_color[0] = original.diffuse_color[0];
+    coppy.diffuse_color[1] = original.diffuse_color[1];
+    coppy.diffuse_color[2] = original.diffuse_color[2];
+
+    coppy.specular_color[0] = original.specular_color[0];
+    coppy.specular_color[1] = original.specular_color[1];
+    coppy.specular_color[2] = original.specular_color[2];
+
+    coppy.position[0] = original.position[0];
+    coppy.position[1] = original.position[1];
+    coppy.position[2] = original.position[1];
+
+    if(original.type == 'p'){
+        coppy.normal[0] = original.normal[0];
+        coppy.normal[1] = original.normal[1];
+        coppy.normal[2] = original.normal[2];
+    }
+    if(original.type == 's') coppy.radius = original.radius;
     return coppy;
 }
 static inline double clamp(double c){
@@ -84,16 +97,19 @@ static inline void vector_reflect(double* normal, double* vvector, double* refle
     free(a);//Free the memory used for this equation
 }
 
-//F_ang is not done at all
-static inline double f_ang(scene_light a){
+//HELP
+//Is this correct?
+//Direction seems to be in reverse? Show example with light at negative z and positive z
+static inline double f_ang(scene_light a, double* Rd_new){
+    double* direction_from_light = malloc(sizeof(double)*3);
+    direction_from_light[0] = Rd_new[0]*-1;
+    direction_from_light[1] = Rd_new[1]*-1;
+    direction_from_light[2] = Rd_new[2]*-1;
     if(a.type == 'l') return 1;
-    //if(alpha > 0);
-    /*else{
-        double num = dot_product(v0, v1);\
-        num = power(num, aa0);
-        return num;
-    }*/
-    return 1;
+
+    double v0_v1 = (a.direction[0]*direction_from_light[0]) +(a.direction[1]*direction_from_light[1]) + (a.direction[2]*direction_from_light[2]);
+    free(direction_from_light);
+    return power(v0_v1, a.aa0);
 }
 
 static inline double f_rad(scene_light a, double* Ro_new){

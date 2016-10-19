@@ -390,14 +390,11 @@ double plane_intersection(double* Ro, double* Rd, double* position, double* norm
 
     //D is the length of the shortest line segment from the origin to the plane
     //D is distance from origin/camera to the plane
-
-
     double x0 = position[0];
     double y0 = position[1];
     double z0 = position[2];
 
     double d = -(a*x0 + b*y0 + c*z0);
-
 
     double den = (a*Rd[0] + b*Rd[1] + c*Rd[2]);
     if(den == 0.0) return -1;
@@ -413,13 +410,11 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
     double zc = position[2];
     normalize(Rd);
 
-
     double a = square(Rd[0])+square(Rd[1])+square(Rd[2]);
     double b = 2*(Rd[0]*(Ro[0]-xc) + Rd[1]*(Ro[1]-yc) + Rd[2]*(Ro[2]-zc));
     double c = (square((Ro[0]-xc)) + square((Ro[1]-yc)) + square((Ro[2]-zc)) - square(radius));
 
     double desc = (square(b) - 4*a*c);
-
     //If descriminate is negative, no intersection
     if(desc < 0.0) return INFINITY;
 
@@ -433,10 +428,7 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
     if(t0 > 0.0)return t0;
     if(t1 > 0.0) return t1;
 
-
     return -1;
-
-
 }
 
 void raycast(double num_width, double num_height){
@@ -517,17 +509,17 @@ void raycast(double num_width, double num_height){
             //If best_t is greater than 0 and not INFINITY, intersection is in view of camera
             if(best_t > 0 && best_t != INFINITY){
 /*To Get Rid of Shadow Part*/
-                for(j=0; j<=list_l; j++){ //Do Summation of Ambient + Diffuse + Emission Light
                     double Ro_new[3] = {0,0,0}; //Ro_new is vector from Light towards Object.  Current Pixel location of intersection.
-                    Ro_new[0] = best_t * Rd[0] + Ro[0];
-                    Ro_new[1] = best_t * Rd[1] + Ro[1];
-                    Ro_new[2] = best_t * Rd[2] + Ro[2];
-                    //normalize(Ro_new);
+                    Ro_new[0] = (best_t * Rd[0]) + Ro[0];
+                    Ro_new[1] = (best_t * Rd[1]) + Ro[1];
+                    Ro_new[2] = (best_t * Rd[2]) + Ro[2];
+                for(j=0; j<=list_l; j++){ //Do Summation of Ambient + Diffuse + Emission Light
 
                     //printf("Ro_new[0] is: %lf\n", Ro_new[0]);
                     double Rd_new[3] = {0,0,0}; //Ray direction from object intersection position to Light position
                     //sub_vector(Ro_new, light_list[j].position,  Rd_new);
                     sub_vector(light_list[j].position, Ro_new, Rd_new);
+                    //printf("Ro_new is: %lf, %lf, %lf.\n", light_list[j].position[0], light_list[j].position[1], light_list[j].position[2]);
 
 
                     double object_to_light[3] = {0,0,0}; //object_to_light is unnormalized vector from object intersection position to light position
@@ -539,6 +531,7 @@ void raycast(double num_width, double num_height){
 
 
                     normalize(Rd_new);
+                    //printf("Rd_new length is: %gf.\n", distance_light_to_pixel);
 
                     scene_object closest_shadow_object;
                     closest_shadow_object.type = NULL;
@@ -559,6 +552,8 @@ void raycast(double num_width, double num_height){
                         //if(best_t > square(vector_length(object_to_light))){
                         //if(best_t > vector_length(object_to_light)){
                         if(best_t > distance_light_to_pixel){
+                            //printf("best_t: %g.\n", best_t);
+                            //printf("distance from light to pixel: %g.\n", distance_light_to_pixel);
                             continue;
                         }
                         if(t_shadow > 0.0 && t_shadow < best_t_shadow){
@@ -574,13 +569,14 @@ void raycast(double num_width, double num_height){
                         if(closest_object.type == 's') {
                                 //sub_vector(Ro_new, closest_object.position, closest_normal);
                                 sub_vector(closest_object.position, Ro_new, closest_normal);
+
                                 }
                         if(closest_object.type == 'p'){
                             closest_normal[0] = closest_object.normal[0];
                             closest_normal[1] = closest_object.normal[1];
                             closest_normal[2] = closest_object.normal[2];
                         }
-
+                        //HELP If the plane normal is positive in JSON file the plane is invisible
                         normalize(closest_normal); //Always want normals to be unit vectors?
 
                         double *vector_direction_to_light = Rd_new;  //vector from object intersection to Light position
@@ -601,24 +597,25 @@ void raycast(double num_width, double num_height){
                         double* current_specular = closest_object.specular_color;
                         double ns = 20; //property of diffuseness of object, will eventually be a property of objects
 
+                        normalize(closest_normal);
                         double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
                         double N_dot_L = dot_product(closest_normal, vector_direction_to_light);
 
 
                         color[0] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
-                                        (diffuse_contribution(0,current_diffuse,light_list[j],closest_normal,vector_direction_to_light)
+                                        (diffuse_contribution(0,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(0,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns,closest_normal,vector_direction_to_light));
+                                        specular_contribution(0,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
 
                         color[1] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
-                                        (diffuse_contribution(1,current_diffuse,light_list[j],closest_normal,vector_direction_to_light)
+                                        (diffuse_contribution(1,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(1,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns,closest_normal,vector_direction_to_light));
+                                        specular_contribution(1,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
 
                         color[2] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
-                                        (diffuse_contribution(2,current_diffuse,light_list[j],closest_normal,vector_direction_to_light)
+                                        (diffuse_contribution(2,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(2,current_specular,light_list[j],view_vector,reflection_of_light_vector,ns,closest_normal,vector_direction_to_light));
+                                        specular_contribution(2,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
 
                     }//Not darkening shadows, just lighting up where there are no shadows
                 }

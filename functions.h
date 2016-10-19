@@ -120,7 +120,7 @@ static inline double f_ang(scene_light a, double* Rd_new, double PI){
     if(acos(v0_v1) < (a.theta * PI/180)) return 0;
 
     free(direction_from_light_to_object);
-    return power(v0_v1, a.aa0);
+    return pow(v0_v1, a.aa0);
 }
 
 static inline double f_rad(scene_light a, double* Ro_new){
@@ -140,29 +140,21 @@ static inline double f_rad(scene_light a, double* Ro_new){
 
     free(vector_to_light);
 }
-static inline double diffuse_contribution(int index,double* obj_diff_color, scene_light light_obj, double* closest_normal, double* vector_to_light){
-    normalize(closest_normal); //Normalize incase it is not already normalized
+static inline double diffuse_contribution(int index,double* obj_diff_color, scene_light light_obj, double N_dot_L){
+    //normalize(closest_normal); //Normalize incase it is not already normalized
     //scale_vector(-1,vector_to_light,vector_to_light);
-    if(dot_product(closest_normal, vector_to_light) <= 0) return 0;
-
-    return obj_diff_color[index]*light_obj.color[index]*(dot_product(closest_normal, vector_to_light));
+    if(N_dot_L <= 0) return 0;
+    return obj_diff_color[index]*light_obj.color[index]*N_dot_L;
 }
-static inline double specular_contribution(int index, double* obj_spec_color, scene_light light_obj, double* view_vector, double* reflection_of_light_vector, double ns, double* closest_normal, double* vector_to_light){
-    normalize(closest_normal);
-    if(dot_product(view_vector, reflection_of_light_vector) <= 0) return 0;
+static inline double specular_contribution(int index, double* obj_spec_color, scene_light light_obj, double N_dot_L, double V_dot_R, double ns){
+    //normalize(closest_normal);
+    if(V_dot_R <= 0) return 0;
+    if(-1*N_dot_L <= 0) return 0;
+    //double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
 
-    if(-1*dot_product(closest_normal, vector_to_light) > 0) return 0;
-
-    double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
-
-    return obj_spec_color[index]*light_obj.color[index]*power(V_dot_R,ns);
+    return obj_spec_color[index]*light_obj.color[index]*pow(V_dot_R,ns);
 }
 
-static inline void print_light(scene_light a){
-    printf("color: %lf, %lf %lf\n", a.color[0], a.color[1], a.color[2]);
-    printf("position: %lf, %lf %lf\n", a.position[0], a.position[1], a.position[2]);
-    printf("\n\n");
-}
 static inline void free_obj_list(scene_object *A, int index, int sizeof_obj){
     int k;
     for(k=0; k<= index; k+= sizeof_obj){

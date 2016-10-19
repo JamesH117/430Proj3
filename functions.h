@@ -82,33 +82,44 @@ static inline double clamp(double c){
 static inline double dot_product(double* a, double* b){
     return (a[0]*b[0] + a[1]*b[1] + a[2]*b[2]);
 }
-static inline void vector_reflect(double* normal, double* vvector, double* reflection){
+static inline void vector_reflect(double* normal, double* light_vector, double* reflection){
     normalize(normal); //normalize normal just incase it is not already normalized
-    //vvector is pointing from intersection point towards light, do I need to make it negative first and then dot product?
-    //If vvector is not poitning to the initial point of the normal vector, i need to inverse vvector before reflecting it
-    scale_vector(1, vvector, vvector);
-    double num = dot_product(normal, vvector); //Dot product between normal and vector to reflect
+    normalize(light_vector);
+
+    double a[3] = {0,0,0};
+
+    scale_vector(2,normal,a);
+    double num = dot_product(a,light_vector);
+    scale_vector(num, normal, a);
+    sub_vector(a,light_vector,reflection);
+    /*
+    scale_vector(1, light_vector, light_vector);
+    double num = dot_product(normal, light_vector); //Dot product between normal and vector to reflect
     double* a = malloc(sizeof(double)*3);
 
     scale_vector(num,normal, a); //Scale the normal with that dotproduct
     scale_vector(2,a,a);        //Scale that new vector with 2
-    sub_vector(vvector,a,reflection);  //Subtract the new scaled vector from the vector to reflect
-    //Reflection should now be the reflection of vvector
+    sub_vector(light_vector,a,reflection);  //Subtract the new scaled vector from the vector to reflect
+    //Reflection should now be the reflection of light_vector
+    */
     free(a);//Free the memory used for this equation
 }
 
-//HELP
-//Is this correct?
-//Direction seems to be in reverse? Show example with light at negative z and positive z
-static inline double f_ang(scene_light a, double* Rd_new){
-    double* direction_from_light = malloc(sizeof(double)*3);
-    direction_from_light[0] = Rd_new[0]*-1;
-    direction_from_light[1] = Rd_new[1]*-1;
-    direction_from_light[2] = Rd_new[2]*-1;
+//This Seems to be working with Spot Lights
+static inline double f_ang(scene_light a, double* Rd_new, double PI){
+    double* direction_from_light_to_object = malloc(sizeof(double)*3);
+    //Rd_new is ray direction from object to light, want the inverse
+    direction_from_light_to_object[0] = -1*Rd_new[0];
+    direction_from_light_to_object[1] = -1*Rd_new[1];
+    direction_from_light_to_object[2] = -1*Rd_new[2];
+
     if(a.type == 'l') return 1;
 
-    double v0_v1 = (a.direction[0]*direction_from_light[0]) +(a.direction[1]*direction_from_light[1]) + (a.direction[2]*direction_from_light[2]);
-    free(direction_from_light);
+    double v0_v1 = ((a.direction[0]*direction_from_light_to_object[0]) +(a.direction[1]*direction_from_light_to_object[1]) + (a.direction[2]*direction_from_light_to_object[2]));
+
+    if(acos(v0_v1) < (a.theta * PI/180)) return 0;
+
+    free(direction_from_light_to_object);
     return power(v0_v1, a.aa0);
 }
 
@@ -117,39 +128,34 @@ static inline double f_rad(scene_light a, double* Ro_new){
     double answer;
 
     //a.position - Ro_new = vector_to_light
-    if(a.type == 'l'){ //point light
-        sub_vector(a.position, Ro_new, vector_to_light);
-        double den = a.ra2*square(vector_length(vector_to_light));
-        if(den == 0){
-            answer = 1/square(vector_length(vector_to_light));
-            free(vector_to_light);
-            return answer;
-        }
-        else{
-            free(vector_to_light);
-            return 1/den;
-        }
-    }
-    if(a.type == 's'){ //spotlight
-        sub_vector(a.position, Ro_new, vector_to_light);
-        double den = a.ra2*square(vector_length(vector_to_light)) + a.ra1*vector_length(vector_to_light) + a.ra0;
-        if(den == 0){
-            answer = 1/square(vector_length(vector_to_light));
-            free(vector_to_light);
-            return answer;
-        }
-        else{
-            free(vector_to_light);
-            return 1/den;
-        }
-    }
+    sub_vector(a.position, Ro_new, vector_to_light);
+    //scale_vector(-1, vector_to_light, vector_to_light);
+    double den = a.ra2*square(vector_length(vector_to_light)) + a.ra1*vector_length(vector_to_light) + a.ra0;
+    double newden = 1*square(vector_length(vector_to_light));
+
+    free(vector_to_light);
+
+    if(den == 0.0) return 1/newden;
+    return 1/den;
+
+    free(vector_to_light);
 }
 static inline double diffuse_contribution(int index,double* obj_diff_color, scene_light light_obj, double* closest_normal, double* vector_to_light){
     normalize(closest_normal); //Normalize incase it is not already normalized
+    //scale_vector(-1,vector_to_light,vector_to_light);
+    if(dot_product(closest_normal, vector_to_light) <= 0) return 0;
+
     return obj_diff_color[index]*light_obj.color[index]*(dot_product(closest_normal, vector_to_light));
 }
-static inline double specular_contribution(int index, double* obj_spec_color, scene_light light_obj, double* view_vector, double* reflection_of_light_vector, double ns){
-    return obj_spec_color[index]*light_obj.color[index]*power(dot_product(view_vector, reflection_of_light_vector),ns);
+static inline double specular_contribution(int index, double* obj_spec_color, scene_light light_obj, double* view_vector, double* reflection_of_light_vector, double ns, double* closest_normal, double* vector_to_light){
+    normalize(closest_normal);
+    if(dot_product(view_vector, reflection_of_light_vector) <= 0) return 0;
+
+    if(-1*dot_product(closest_normal, vector_to_light) > 0) return 0;
+
+    double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
+
+    return obj_spec_color[index]*light_obj.color[index]*power(V_dot_R,ns);
 }
 
 static inline void print_light(scene_light a){
@@ -157,9 +163,6 @@ static inline void print_light(scene_light a){
     printf("position: %lf, %lf %lf\n", a.position[0], a.position[1], a.position[2]);
     printf("\n\n");
 }
-
-
-
 static inline void free_obj_list(scene_object *A, int index, int sizeof_obj){
     int k;
     for(k=0; k<= index; k+= sizeof_obj){

@@ -22,6 +22,7 @@ typedef struct scene_light{
         double color[4];
         double position[4];
         double direction[4];
+        double theta;
         double ra2;
         double ra1;
         double ra0;

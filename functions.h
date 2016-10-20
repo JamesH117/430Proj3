@@ -34,11 +34,6 @@ static inline void sub_vector(double* a, double* b, double* answer){
     answer[1] = a[1] - b[1];
     answer[2] = a[2] - b[2];
 }
-static inline void mult_vectors(double* a, double* b, double* answer){
-    answer[0] = a[0]*b[0];
-    answer[1] = a[1]*b[1];
-    answer[2] = a[2]*b[2];
-}
 static inline int compare_objects(scene_object listo, scene_object pointero){
     if(listo.type != pointero.type) return -1;
     if(listo.diffuse_color != pointero.diffuse_color) return -1;
@@ -87,21 +82,22 @@ static inline void vector_reflect(double* normal, double* light_vector, double* 
     normalize(light_vector);
 
     double a[3] = {0,0,0};
-
+    /*
     scale_vector(2,normal,a);
     double num = dot_product(a,light_vector);
     scale_vector(num, normal, a);
     sub_vector(a,light_vector,reflection);
-    /*
-    scale_vector(1, light_vector, light_vector);
-    double num = dot_product(normal, light_vector); //Dot product between normal and vector to reflect
-    double* a = malloc(sizeof(double)*3);
+    */
 
-    scale_vector(num,normal, a); //Scale the normal with that dotproduct
+    //scale_vector(1, light_vector, light_vector);
+
+    double num = dot_product(normal, light_vector); //Dot product between normal and vector to reflect
+
+    scale_vector(num,normal, a); //Scale the normal with that dot product
     scale_vector(2,a,a);        //Scale that new vector with 2
     sub_vector(light_vector,a,reflection);  //Subtract the new scaled vector from the vector to reflect
     //Reflection should now be the reflection of light_vector
-    */
+
     free(a);//Free the memory used for this equation
 }
 
@@ -109,9 +105,9 @@ static inline void vector_reflect(double* normal, double* light_vector, double* 
 static inline double f_ang(scene_light a, double* Rd_new, double PI){
     double* direction_from_light_to_object = malloc(sizeof(double)*3);
     //Rd_new is ray direction from object to light, want the inverse
-    direction_from_light_to_object[0] = -1*Rd_new[0];
-    direction_from_light_to_object[1] = -1*Rd_new[1];
-    direction_from_light_to_object[2] = -1*Rd_new[2];
+    direction_from_light_to_object[0] = 1*Rd_new[0];
+    direction_from_light_to_object[1] = 1*Rd_new[1];
+    direction_from_light_to_object[2] = 1*Rd_new[2];
 
     if(a.type == 'l') return 1;
 
@@ -149,7 +145,7 @@ static inline double diffuse_contribution(int index,double* obj_diff_color, scen
 static inline double specular_contribution(int index, double* obj_spec_color, scene_light light_obj, double N_dot_L, double V_dot_R, double ns){
     //normalize(closest_normal);
     if(V_dot_R <= 0) return 0;
-    if(-1*N_dot_L <= 0) return 0;
+    if(N_dot_L <= 0) return 0;
     //double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
 
     return obj_spec_color[index]*light_obj.color[index]*pow(V_dot_R,ns);

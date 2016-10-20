@@ -577,22 +577,24 @@ void raycast(double num_width, double num_height){
                             closest_normal[2] = closest_object.normal[2];
                         }
                         //HELP If the plane normal is positive in JSON file the plane is invisible
-                        normalize(closest_normal); //Always want normals to be unit vectors?
+                        //normalize(closest_normal); //Always want normals to be unit vectors?
+                        //scale_vector(-1, closest_normal, closest_normal);
 
                         double *vector_direction_to_light = Rd_new;  //vector from object intersection to Light position
                         double reflection_of_light_vector[3] = {0,0,0};
 
                         //vector is pointing from intersection point towards light, do I need to make it negative first and then dot product?
                         vector_reflect(closest_normal, vector_direction_to_light, reflection_of_light_vector);
-
+                        scale_vector(-1, reflection_of_light_vector, reflection_of_light_vector);
                         //view_vector is the vector direction the camera sees an object at
+                        normalize(reflection_of_light_vector);
+
                         double view_vector[3] = {0,0,0};
                         view_vector[0] = -1*Rd[0];
                         view_vector[1] = -1*Rd[1];
                         view_vector[2] = -1*Rd[2];
-
-
                         normalize(view_vector);
+
                         double* current_diffuse = closest_object.diffuse_color;
                         double* current_specular = closest_object.specular_color;
                         double ns = 20; //property of diffuseness of object, will eventually be a property of objects

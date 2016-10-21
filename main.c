@@ -118,7 +118,7 @@ void read_scene(char* filename) {
     //Doesnt run with 4 lights without this print line....
     //HELP
     //printf("Not it is fixed, WHY.\n");
-    printf("Starting Read Scene Function.\n");
+    //printf("Starting Read Scene Function.\n");
     int c;
     char current_object;
 
@@ -432,7 +432,7 @@ double sphere_intersection(double* Ro, double* Rd, double* position, double radi
 }
 
 void raycast(double num_width, double num_height){
-    printf("Starting Raycast function.\n");
+    //printf("Starting Raycast function.\n");
 
     int x = 0;
     int y = 0;
@@ -517,7 +517,7 @@ void raycast(double num_width, double num_height){
 
                     //printf("Ro_new[0] is: %lf\n", Ro_new[0]);
                     double Rd_new[3] = {0,0,0}; //Ray direction from object intersection position to Light position
-                    //sub_vector(Ro_new, light_list[j].position,  Rd_new);
+                    //sub_vector(Ro_new, light_list[j].position,  Rd_new); //Turn on For RINGS
                     sub_vector(light_list[j].position, Ro_new, Rd_new);
                     //printf("Ro_new is: %lf, %lf, %lf.\n", light_list[j].position[0], light_list[j].position[1], light_list[j].position[2]);
 
@@ -540,8 +540,8 @@ void raycast(double num_width, double num_height){
                     double best_t_shadow = INFINITY;
                     for(k=0; k<=list_i; k++){  //Iterate through objects to see what casts a shadow on pixel
                         double t_shadow = 0;
-                        //if(compare_objects(obj_list[i], closest_object) == 0) continue;
-                        if(k == i) continue;
+                        if(compare_objects(obj_list[k], closest_object) == 0) continue;
+                        //if(k == i) continue;
 
                         if(obj_list[k].type == 's'){
                                 t_shadow = sphere_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].radius);
@@ -567,7 +567,7 @@ void raycast(double num_width, double num_height){
                     //if(best_t_shadow == INFINITY){
                         double closest_normal[3] = {0,0,0};
                         if(closest_object.type == 's') {
-                                //sub_vector(Ro_new, closest_object.position, closest_normal);
+                                //sub_vector(Ro_new, closest_object.position, closest_normal); //Turn on for RINGS
                                 sub_vector(closest_object.position, Ro_new, closest_normal);
 
                                 }
@@ -585,7 +585,7 @@ void raycast(double num_width, double num_height){
 
                         //vector is pointing from intersection point towards light, do I need to make it negative first and then dot product?
                         vector_reflect(closest_normal, vector_direction_to_light, reflection_of_light_vector);
-                        scale_vector(-1, reflection_of_light_vector, reflection_of_light_vector);
+                        //scale_vector(-1, reflection_of_light_vector, reflection_of_light_vector);
                         //view_vector is the vector direction the camera sees an object at
                         normalize(reflection_of_light_vector);
 
@@ -689,7 +689,7 @@ int main(int argc, char** argv) {
     free(light_list);
     free(pixel_buffer);
 
-    printf("Finished.\n");
+    //printf("Finished.\n");
 
     return 0;
 }

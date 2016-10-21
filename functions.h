@@ -36,11 +36,15 @@ static inline void sub_vector(double* a, double* b, double* answer){
 }
 static inline int compare_objects(scene_object listo, scene_object pointero){
     if(listo.type != pointero.type) return -1;
-    if(listo.diffuse_color != pointero.diffuse_color) return -1;
-    if(listo.specular_color != pointero.specular_color) return -1;
-    if(listo.position != pointero.position) return -1;
-    if(listo.normal != pointero.normal) return -1;
-    if(listo.radius != pointero.radius) return -1;
+    if(listo.diffuse_color[0] != pointero.diffuse_color[0] || listo.diffuse_color[1] != pointero.diffuse_color[1] || listo.diffuse_color[2] != pointero.diffuse_color[2]) return -1;
+    if(listo.specular_color[0] != pointero.specular_color[0] || listo.specular_color[1] != pointero.specular_color[1] || listo.specular_color[2] != pointero.specular_color[2]) return -1;
+    if(listo.position[0] != pointero.position[0] || listo.position[1] != pointero.position[1] || listo.position[2] != pointero.position[2]) return -1;
+    if(listo.type == 'p'){
+        if(listo.normal[0] != pointero.normal[0] || listo.normal[1] != pointero.normal[1] || listo.normal[2] != pointero.normal[2]) return -1;
+    }
+    if(listo.type == 's'){
+        if(listo.radius != pointero.radius) return -1;
+    }
     return 0;
 }
 static inline scene_object copy_object(scene_object coppy, scene_object original){
@@ -98,7 +102,7 @@ static inline void vector_reflect(double* normal, double* light_vector, double* 
     sub_vector(light_vector,a,reflection);  //Subtract the new scaled vector from the vector to reflect
     //Reflection should now be the reflection of light_vector
 
-    free(a);//Free the memory used for this equation
+    //free(a);//Free the memory used for this equation
 }
 
 //This Seems to be working with Spot Lights
@@ -149,28 +153,4 @@ static inline double specular_contribution(int index, double* obj_spec_color, sc
     //double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
 
     return obj_spec_color[index]*light_obj.color[index]*pow(V_dot_R,ns);
-}
-
-static inline void free_obj_list(scene_object *A, int index, int sizeof_obj){
-    int k;
-    for(k=0; k<= index; k+= sizeof_obj){
-            free(A[k].diffuse_color);
-            free(A[k].specular_color);
-            free(A[k].position);
-
-            if(A[k].type == 'p'){
-                free(A[k].normal);
-            }
-
-    }
-}
-static inline void free_light_list(scene_light *A, int index, int sizeof_light){
-    int k;
-    for(k=0; k<= index; k+= sizeof_light){
-        free(A[k].color);
-        free(A[k].position);
-        if(A[k].type == 's'){
-            free(A[k].direction);
-        }
-    }
 }

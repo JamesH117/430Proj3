@@ -117,7 +117,7 @@ static inline double f_ang(scene_light a, double* Rd_new, double PI){
 
     double v0_v1 = ((a.direction[0]*direction_from_light_to_object[0]) +(a.direction[1]*direction_from_light_to_object[1]) + (a.direction[2]*direction_from_light_to_object[2]));
 
-    if(acos(v0_v1) < (a.theta * PI/180)) return 0;
+    if(v0_v1 < (cos(a.theta) * PI/180)) return 0;
 
     free(direction_from_light_to_object);
     return pow(v0_v1, a.aa0);

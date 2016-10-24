@@ -3,7 +3,7 @@ CS430 Project 3 James Hauser Jh2377 Project 3 - Illumination
 
 Run the make file.  Once created the parameters for the .exe is: "pixel_width" "Pixel_height" "Json_file.json" "output_name.ppm"
 
-
+Problems resolved thanks to Dr. Palmer
 # Problems with project:
 	Shading seems to bugged.  Problem is most likely that my intersection test for shadows is colliding with self object somehow, even though I skip closest
 		object, which is itself.

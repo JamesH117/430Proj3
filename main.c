@@ -469,6 +469,7 @@ void raycast(double num_width, double num_height){
             normalize(Rd);
 
             double best_t = INFINITY;
+            int closest_object_index = -1;
             double best_c[3] = {0,0,0};
 
 
@@ -494,6 +495,7 @@ void raycast(double num_width, double num_height){
                     best_c[2] = obj_list[i].diffuse_color[2];
 
                     closest_object = copy_object(closest_object, obj_list[i]);
+                    closest_object_index = i;
 
                     //printf("Closest_object.type: %c\n", closest_object.type);
                 }
@@ -519,18 +521,19 @@ void raycast(double num_width, double num_height){
                     double Rd_new[3] = {0,0,0}; //Ray direction from object intersection position to Light position
                     //sub_vector(Ro_new, light_list[j].position,  Rd_new); //Turn on For RINGS
                     sub_vector(light_list[j].position, Ro_new, Rd_new);
+                    normalize(Rd_new);
                     //printf("Ro_new is: %lf, %lf, %lf.\n", light_list[j].position[0], light_list[j].position[1], light_list[j].position[2]);
 
 
-                    double object_to_light[3] = {0,0,0}; //object_to_light is unnormalized vector from object intersection position to light position
+                    /*double object_to_light[3] = {0,0,0}; //object_to_light is unnormalized vector from object intersection position to light position
                     object_to_light[0] = Rd_new[0];
                     object_to_light[1] = Rd_new[1];
-                    object_to_light[2] = Rd_new[2];
+                    object_to_light[2] = Rd_new[2];*/
 
-                    double distance_light_to_pixel = sqrt(square(Ro_new[0]-Rd_new[0])+ square(Ro_new[1]-Rd_new[1])+ square(Ro_new[2]-Rd_new[2]));
+                    double distance_light_to_pixel = sqrt(square(light_list[j].position[0]-Ro_new[0])+ square(light_list[j].position[1]-Ro_new[1])+ square(light_list[j].position[2]-Ro_new[2]));
 
 
-                    normalize(Rd_new);
+                    //normalize(Rd_new);
                     //printf("Rd_new length is: %gf.\n", distance_light_to_pixel);
 
                     scene_object closest_shadow_object;
@@ -538,10 +541,11 @@ void raycast(double num_width, double num_height){
 
 
                     double best_t_shadow = INFINITY;
+                    int closest_shadow_index = -1;
                     for(k=0; k<=list_i; k++){  //Iterate through objects to see what casts a shadow on pixel
                         double t_shadow = 0;
-                        if(compare_objects(obj_list[k], closest_object) == 0) continue;
-                        //if(k == i) continue;
+                        //if(compare_objects(obj_list[k], closest_object) == 0) continue;
+                        if(k == closest_object_index) continue;
 
                         if(obj_list[k].type == 's'){
                                 t_shadow = sphere_intersection(Ro_new, Rd_new, obj_list[k].position, obj_list[k].radius);
@@ -551,7 +555,7 @@ void raycast(double num_width, double num_height){
                         }
                         //if(best_t > square(vector_length(object_to_light))){
                         //if(best_t > vector_length(object_to_light)){
-                        if(best_t > distance_light_to_pixel){
+                        if(best_t > distance_light_to_pixel){ //Need to skip if object is past light
                             //printf("best_t: %g.\n", best_t);
                             //printf("distance from light to pixel: %g.\n", distance_light_to_pixel);
                             continue;
@@ -560,24 +564,26 @@ void raycast(double num_width, double num_height){
                             best_t_shadow = t_shadow;
                             //printf("best_t_shadow: %lf\n", best_t_shadow);
                             closest_shadow_object = copy_object(closest_shadow_object, obj_list[k]);
+                            closest_shadow_index = k;
                             //printf("Closest_shadow_object.type: %c\n", closest_shadow_object.type);
                         }
                     }
-                    if(closest_shadow_object.type == NULL){ //Color in the lighting for that pixel because there is no object casting a shadow on the closest object.
+                    //if(closest_shadow_object.type == NULL){ //Color in the lighting for that pixel because there is no object casting a shadow on the closest object.
                     //if(best_t_shadow == INFINITY){
+                    if(closest_shadow_index < 0){
                         double closest_normal[3] = {0,0,0};
                         if(closest_object.type == 's') {
-                                //sub_vector(Ro_new, closest_object.position, closest_normal); //Turn on for RINGS
-                                sub_vector(closest_object.position, Ro_new, closest_normal);
+                                sub_vector(Ro_new, obj_list[closest_object_index].position, closest_normal); //Turn on for RINGS
+                                //sub_vector(closest_object.position, Ro_new, closest_normal);
 
                                 }
                         if(closest_object.type == 'p'){
-                            closest_normal[0] = closest_object.normal[0];
-                            closest_normal[1] = closest_object.normal[1];
-                            closest_normal[2] = closest_object.normal[2];
+                            closest_normal[0] = obj_list[closest_object_index].normal[0];
+                            closest_normal[1] = obj_list[closest_object_index].normal[1];
+                            closest_normal[2] = obj_list[closest_object_index].normal[2];
                         }
                         //HELP If the plane normal is positive in JSON file the plane is invisible
-                        //normalize(closest_normal); //Always want normals to be unit vectors?
+                        normalize(closest_normal); //Always want normals to be unit vectors?
                         //scale_vector(-1, closest_normal, closest_normal);
 
                         double *vector_direction_to_light = Rd_new;  //vector from object intersection to Light position
@@ -590,9 +596,9 @@ void raycast(double num_width, double num_height){
                         normalize(reflection_of_light_vector);
 
                         double view_vector[3] = {0,0,0};
-                        view_vector[0] = -1*Rd[0];
-                        view_vector[1] = -1*Rd[1];
-                        view_vector[2] = -1*Rd[2];
+                        view_vector[0] = 1*Rd[0];
+                        view_vector[1] = 1*Rd[1];
+                        view_vector[2] = 1*Rd[2];
                         normalize(view_vector);
 
                         double* current_diffuse = closest_object.diffuse_color;
@@ -600,6 +606,8 @@ void raycast(double num_width, double num_height){
                         double ns = 20; //property of diffuseness of object, will eventually be a property of objects
 
                         normalize(closest_normal);
+                        normalize(vector_direction_to_light);
+
                         double V_dot_R = dot_product(view_vector, reflection_of_light_vector);
                         double N_dot_L = dot_product(closest_normal, vector_direction_to_light);
 
@@ -607,34 +615,30 @@ void raycast(double num_width, double num_height){
                         color[0] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
                                         (diffuse_contribution(0,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(0,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
+                                        specular_contribution(0,current_specular,light_list[j],N_dot_L,V_dot_R,ns)
+                                         );
 
                         color[1] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
                                         (diffuse_contribution(1,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(1,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
+                                        specular_contribution(1,current_specular,light_list[j],N_dot_L,V_dot_R,ns)
+                                         );
 
                         color[2] += f_rad(light_list[j], Ro_new) * f_ang(light_list[j],Rd_new,PI) *
                                         (diffuse_contribution(2,current_diffuse,light_list[j],N_dot_L)
                                          +
-                                        specular_contribution(2,current_specular,light_list[j],N_dot_L,V_dot_R,ns));
+                                        specular_contribution(2,current_specular,light_list[j],N_dot_L,V_dot_R,ns)
+                                         );
 
                     }//Not darkening shadows, just lighting up where there are no shadows
                 }
 //To Get rid of Shadow Parts*/
                 //Make a paint function that takes into account the lights in the scene
-
+                }
                 int pos = (int)((M - y -1)*N +x);
                 pixel_buffer[pos].r = (unsigned char)(clamp(color[0])*255);
                 pixel_buffer[pos].g = (unsigned char)(clamp(color[1])*255);
                 pixel_buffer[pos].b = (unsigned char)(clamp(color[2])*255);
-            }
-            else{ //Paint it black otherwise
-                int pos = (int)((M - y -1)*N +x);
-                pixel_buffer[pos].r = (unsigned char)clamp(color[0])*255;
-                pixel_buffer[pos].g = (unsigned char)clamp(color[1])*255;
-                pixel_buffer[pos].b = (unsigned char)clamp(color[2])*255;
-            }
         }
     }
 }

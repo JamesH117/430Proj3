@@ -140,7 +140,7 @@ static inline double f_rad(scene_light a, double* Ro_new){
 
     free(vector_to_light);
 }
-static inline double diffuse_contribution(int index,double* obj_diff_color, scene_light light_obj, double N_dot_L){
+static inline double diffuse_contribution(int index, double* obj_diff_color, scene_light light_obj, double N_dot_L){
     //normalize(closest_normal); //Normalize incase it is not already normalized
     //scale_vector(-1,vector_to_light,vector_to_light);
     if(N_dot_L <= 0) return 0;

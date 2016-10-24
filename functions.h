@@ -109,9 +109,9 @@ static inline void vector_reflect(double* normal, double* light_vector, double* 
 static inline double f_ang(scene_light a, double* Rd_new, double PI){
     double* direction_from_light_to_object = malloc(sizeof(double)*3);
     //Rd_new is ray direction from object to light, want the inverse
-    direction_from_light_to_object[0] = 1*Rd_new[0];
-    direction_from_light_to_object[1] = 1*Rd_new[1];
-    direction_from_light_to_object[2] = 1*Rd_new[2];
+    direction_from_light_to_object[0] = -1*Rd_new[0];
+    direction_from_light_to_object[1] = -1*Rd_new[1];
+    direction_from_light_to_object[2] = -1*Rd_new[2];
 
     if(a.type == 'l') return 1;
 
